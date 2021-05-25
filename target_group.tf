@@ -6,14 +6,17 @@
 # Should we support this?
 
 resource "aws_lb_target_group" "default" {
-  count = length(var.load_balancer) > 0 ? 1 : 0
+  count = local.uses_lb ? 1 : 0
   name  = var.name
   port  = local.container_port
 
   # Valid vales for protocol are HTTP/HTTPS. We only support HTTP
   # because we trust the path between the load balancer and the
   # containers. If not then do NOT use a load balancer.
-  protocol = "HTTP"
+
+  # FIXME: This likely need to be selectable to allow other protocols. Perhaps
+  # we should not even have a default.
+  protocol = local.uses_alb ? "HTTP" : "TCP"
 
   vpc_id = local.lb_vpc_id
 
@@ -45,3 +48,10 @@ resource "aws_lb_target_group" "default" {
 
   tags = merge({ "Name" = var.name }, var.tags)
 }
+
+#resource "aws_lb_target_group_attachment" "default" {
+# for_each         = local.uses_nlb ? toset([aws_lb_target_group.default[0].arn]) : toset()
+# target_group_arn = each.value
+# target_id        = aws_ecs_service.awsvpc_lb[0].id
+# # port             = 80
+#}

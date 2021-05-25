@@ -67,6 +67,8 @@ locals {
   vpc     = lookup(var.network_configuration, "vpc", "")
 }
 
+# FIXME: This might break with NLBs.
+
 locals {
   security_groups = distinct(
     concat(
@@ -75,6 +77,10 @@ locals {
       local.nc_security_groups,
     ),
   )
+}
+
+output "zzz_sg" {
+  value = local.security_groups
 }
 
 # autoscaling
